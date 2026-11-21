@@ -1,0 +1,79 @@
+name: Scrape inputs
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'           # every 10 min (GitHub drops many of these on small repos)
+    - cron: '5,15,25 4 * * 1-6'      # MJDTA morning print ~9:30 AM IST
+    - cron: '38,44,52 6 * * 1-5'     # IBJA AM print ~12:05 PM IST
+    - cron: '33,38,45 11 * * 1-5'    # IBJA PM print ~5:00 PM IST
+    - cron: '35 1 * * 1-6'           # 7:05 AM IST: start the market-hours chain
+    - cron: '50 2 * * 1-6'           # backup chain starters
+    - cron: '10,40 3 * * 1-6'
+    - cron: '0 3 1 * *'              # monthly keep-alive (re-enables this schedule)
+  workflow_dispatch:
+    inputs:
+      loop_minutes:
+        description: 'Minutes to keep scraping in this run'
+        default: '50'
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: |
+          pip install --quiet requests beautifulsoup4
+          command -v pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+
+      - name: Load previous data (data branch)
+        run: |
+          mkdir -p prev
+          if git ls-remote --exit-code origin refs/heads/data >/dev/null 2>&1; then
+            git fetch --quiet --depth=1 origin data
+            for f in latest history state; do git show FETCH_HEAD:data/$f.json > prev/$f.json || rm -f prev/$f.json; done
+          fi
+
+      - name: Scrape every 10 min for ~45 min, publish on change
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LOOP_MINUTES: ${{ inputs.loop_minutes || '50' }}
+          INTERVAL_SEC: '600'
+        run: bash scraper/loop.sh
+
+      # GitHub silently drops most "*/10" cron runs on small repos, so during market hours
+      # (7:00 AM to 11:50 PM IST, Mon-Sat) each run queues the next one. The concurrency group keeps
+      # at most one running + one queued, so chains never multiply.
+      - name: Queue the next run (market hours)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          hm=$(TZ=Asia/Kolkata date +%H%M); dow=$(TZ=Asia/Kolkata date +%u)
+          if [ "$dow" -le 6 ] && [ $((10#$hm)) -ge 700 ] && [ $((10#$hm)) -le 2350 ]; then
+            gh workflow run scrape.yml --repo "$GITHUB_REPOSITORY" --ref main && echo "queued next run"
+          else
+            echo "outside market hours ($hm IST, day $dow): cron only"
+          fi
+
+      - name: Keep schedule alive
+        if: github.event.schedule == '0 3 1 * *'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/scrape.yml/enable" || true

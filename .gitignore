@@ -1,0 +1,7 @@
+localdata.json
+prev/
+out/
+next-prev/
+scrape.log
+__pycache__/
+node_modules/

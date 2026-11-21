@@ -1,0 +1,6 @@
+{
+  "name": "india-gold-rate-predictor",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test tests/calc.test.mjs && python3 tests/test_parsers.py" }
+}
