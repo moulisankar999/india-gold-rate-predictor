@@ -1,3 +1,5 @@
+> **Moved.** This predictor is now the **Prediction** tab of [Gold · Silver · FX](https://moulisankar999.github.io/gold-silver-fx-dashboard/#predict) (repo `moulisankar999/gold-silver-fx-dashboard`). This site redirects there; the scraper workflow here is disabled. The old page is kept in `legacy/`.
+
 # India Gold Rate Predictor
 
 Live: https://moulisankar999.github.io/india-gold-rate-predictor/

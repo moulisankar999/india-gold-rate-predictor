@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>India Gold Rate Predictor · 24K · 22K · Silver</title>
+<meta name="description" content="Predicts today's India gold (24K, 22K) and silver rates in INR from live COMEX and MCX prices, calibrated against IBJA and Chennai board prints.">
+<meta name="theme-color" content="#0a0d14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="assets/app.css">
+<script>try{var t=localStorage.getItem('igp-theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img src="assets/icon.svg" alt="" width="36" height="36">
+    <div><h1>India Gold Rate Predictor</h1><p class="sub" id="clock">—</p></div>
+  </div>
+  <div class="acts">
+    <button class="btn" id="themeBtn" aria-label="Dark or light mode" title="Dark / light">◐</button>
+    <button class="btn" id="refreshBtn" aria-label="Refresh now"><span class="spin">↻</span> <span id="countdown">--</span></button>
+  </div>
+</header>
+<main>
+  <div id="banner"></div>
+  <section id="hero" aria-label="Predicted India rates"><p class="skel">Loading live COMEX and MCX prices…</p></section>
+  <section id="chennai" class="blk"></section>
+  <section id="inputs" class="blk"></section>
+  <section id="methods" class="blk"></section>
+  <section id="accuracy" class="blk"></section>
+  <section id="how" class="blk"></section>
+</main>
+<footer id="foot"></footer>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>
